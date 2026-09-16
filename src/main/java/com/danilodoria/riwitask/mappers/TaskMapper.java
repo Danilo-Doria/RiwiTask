@@ -6,7 +6,7 @@ import com.danilodoria.riwitask.entity.Task;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring") // "spring" permite inyectarlo con @Autowired en tus servicios
+@Mapper(componentModel = "spring")// "spring" permite inyectarlo con @Autowired en tus servicios
 public interface TaskMapper {
     // De Entidad a Response DTO (Salida)
     TaskResponseDTO toResponseDTO(Task task);

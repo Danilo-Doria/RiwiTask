@@ -3,9 +3,9 @@ spring:
     name: Riwi
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/riwitask_db
+    url: jdbc:postgresql://localhost:5435/riwitask_db
     username: riwi_user
-    password: riwi_password
+    password: riwi_pass
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
