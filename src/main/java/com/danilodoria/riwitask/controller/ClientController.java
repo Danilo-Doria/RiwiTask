@@ -5,7 +5,6 @@ import com.danilodoria.riwitask.dto.response.ClientResponseDTO;
 import com.danilodoria.riwitask.service.ClientService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;

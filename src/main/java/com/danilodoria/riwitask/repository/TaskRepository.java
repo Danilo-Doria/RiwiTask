@@ -1,6 +1,5 @@
 package com.danilodoria.riwitask.repository;
 
-import com.danilodoria.riwitask.entity.Priority;
 import com.danilodoria.riwitask.entity.Status;
 import com.danilodoria.riwitask.entity.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
