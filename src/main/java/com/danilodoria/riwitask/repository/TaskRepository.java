@@ -1,8 +1,8 @@
 package com.danilodoria.riwitask.repository;
 
 import com.danilodoria.riwitask.entity.Client;
-import com.danilodoria.riwitask.entity.PriorityEnum;
-import com.danilodoria.riwitask.entity.StatusEnum;
+import com.danilodoria.riwitask.entity.Priority;
+import com.danilodoria.riwitask.entity.Status;
 import com.danilodoria.riwitask.entity.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -14,9 +14,9 @@ public interface TaskRepository extends JpaRepository<Client, Long> {
 
     List<Task> findByStatus(String status);
 
-    List<Task> findByPriority(PriorityEnum priority);
+    List<Task> findByPriority(Priority priority);
 
-    List<Task> findByClientIdAndStatus(Long userId, StatusEnum status);
+    List<Task> findByClientIdAndStatus(Long userId, Status status);
 
-    List<Task> findByClientIdAndStatusOrderByCreatedAtDesc(Long clientId, StatusEnum status);
+    List<Task> findByClientIdAndStatusOrderByCreatedAtDesc(Long clientId, Status status);
 }

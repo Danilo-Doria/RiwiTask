@@ -4,7 +4,7 @@ import jakarta.validation.constraints.*;
 
 public record ClientRequestDTO(
         @NotBlank(message = "El nombre es obligatorio")
-        @Size(max = 255, message = "El nombre no debe superar los 100 caracteres")
+        @Size(max = 255, message = "El nombre no debe superar los 255 caracteres")
         String name,
 
         @NotBlank(message = "El correo es obligatorio")

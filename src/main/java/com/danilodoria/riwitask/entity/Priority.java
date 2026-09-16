@@ -1,6 +1,6 @@
 package com.danilodoria.riwitask.entity;
 
-public enum PriorityEnum {
+public enum Priority {
     BAJA,
     MEDIA,
     ALTA

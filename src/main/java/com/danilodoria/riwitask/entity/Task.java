@@ -27,11 +27,11 @@ public class Task {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StatusEnum statusEnum;
+    private Status status;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PriorityEnum priorityEnum;
+    private Priority priority;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
