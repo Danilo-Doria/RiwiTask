@@ -1,92 +1,120 @@
-# RiwiTask API 🚀
+# RiwiTask 🚀
 
-API RESTful para la gestión eficiente de clientes y sus tareas asociadas, desarrollada con **Spring Boot 4.1.1** y **Java 21** aplicando principios de Arquitectura Limpia, DTOs inmutables con Java Records, mapeo automático con MapStruct y manejo centralizado de excepciones.
-
----
-
-## 🛠️ Tecnologías Utilizadas
-
-* **Java 21** - Lenguaje de programación base.
-* **Spring Boot 4.1.1** - Framework de desarrollo.
-* **Spring Data JPA & Hibernate** - Persistencia de datos y ORM.
-* **PostgreSQL** - Base de datos relacional.
-* **MapStruct** - Mapeo desacoplado entre Entidades y DTOs.
-* **Lombok** - Reducción de código repetitivo (`@Getter`, `@Setter`, `@Builder`).
-* **Jakarta Bean Validation** - Validación de reglas de entrada (`@NotBlank`, `@NotNull`, etc.).
-* **Springdoc OpenAPI 3 (Swagger UI)** - Documentación interactiva de la API.
+Proyecto Fullstack para la gestión eficiente de clientes y tareas. El backend está desarrollado con **Spring Boot 4.1.1** y **Java 21**, completamente dockerizado con **Docker & Docker Compose**, y preparado para integrarse con un frontend en el directorio `client/`.
 
 ---
 
 ## 📁 Estructura del Proyecto
 
 ```text
-src/main/java/com/danilodoria/riwitask/
-├── config/          # Configuración de OpenAPI / Swagger
-├── controller/      # Endpoints REST (@RestController)
-├── dto/             # Data Transfer Objects (Request / Response Records)
-├── entity/          # Entidades JPA (Client, Task)
-├── enums/           # Enumeraciones (Status, Priority)
-├── exception/       # Excepciones personalizadas y GlobalExceptionHandler
-├── mappers/         # Interfaces de MapStruct
-├── repository/      # Repositorios Spring Data JPA
-└── service/         # Lógica de negocio (ClientService, TaskService)# RiwiTask
-```
----
-
-## 📌 Características Principales
-
-* **Gestión de Clientes:** CRUD completo con validación de correo único (`EmailAlreadyExistsException`).
-* **Gestión de Tareas:** CRUD completo con asociación estricta a un cliente existente.
-* **Filtros Avanzados:** Consulta de tareas por cliente y estado (`PENDIENTE`, `COMPLETADA`, etc.) ordenadas descendentemente por fecha de creación (`createdAt DESC`).
-* **Manejo Centralizado de Errores:** Respuestas estandarizadas (`ErrorResponseDTO`) con códigos HTTP semánticos (`201`, `200`, `204`, `400`, `404`, `409`, `500`).
-
----
-
-## ⚙️ Configuración del Entorno
-
-Asegúrate de tener creada la base de datos `riwitask_db` en PostgreSQL e incluye las credenciales en `src/main/resources/application.properties`:
-
-```properties
-spring.application.name=riwitask
-spring.datasource.url=jdbc:postgresql://localhost:5432/riwitask_db
-spring.datasource.username=tu_usuario
-spring.datasource.password=tu_contraseña
-
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
+RiwiTask/
+├── client/                 # Aplicación Frontend (Angular)
+├── server/                 # Backend Spring Boot
+│   ├── gradle/             # Wrapper de Gradle
+│   ├── src/                # Código fuente Java y recursos
+│   │   └── main/
+│   │       ├── java/com/danilodoria/riwitask/
+│   │       │   ├── controller/      # Controladores REST (@RestController)
+│   │       │   ├── dto/             # DTOs inmutables (Java Records)
+│   │       │   ├── entity/          # Entidades JPA (Client, Task, Status, Priority)
+│   │       │   ├── exception/       # Manejador global de excepciones
+│   │       │   ├── mappers/         # Interfaces MapStruct
+│   │       │   ├── repository/      # Repositorios Spring Data JPA
+│   │       │   └── service/         # Servicios con lógica de negocio
+│   │       └── resources/
+│   │           └── application.yaml # Configuración de la aplicación
+│   ├── Dockerfile          # Imagen Docker multi-stage (JDK 21 -> JRE 21 Alpine)
+│   ├── docker-compose.yml  # Orquestación de backend y PostgreSQL 16
+│   ├── build.gradle        # Dependencias y configuración de Gradle
+│   └── gradlew             # Script ejecutable de Gradle
+├── .gitignore              # Reglas de exclusión de Git para client y server
+├── LICENSE                 # Licencia del proyecto
+└── README.md               # Documentación general
 ```
 
 ---
 
-## 🚀 Ejecución del Proyecto
+## 🛠️ Tecnologías Utilizadas
 
-1. **Clonar el repositorio:**
+* **Java 21** - Lenguaje de programación.
+* **Spring Boot 4.1.1** - Framework backend.
+* **Spring Data JPA & Hibernate** - Persistencia relacional y ORM.
+* **PostgreSQL 16** - Motor de base de datos relacional.
+* **Docker & Docker Compose** - Contenedorización y orquestación de servicios.
+* **MapStruct** - Mapeo de Entidades a DTOs.
+* **Jakarta Bean Validation** - Validación de datos (`@NotBlank`, `@NotNull`, `@Email`, etc.).
+* **Lombok** - Reducción de boilerplate en entidades y servicios.
+
+---
+
+## 🐳 Despliegue con Docker (Recomendado)
+
+El backend y su base de datos PostgreSQL están completamente contenerizados mediante un Dockerfile multi-stage y Docker Compose con healthcheck integrado.
+
+### Prerrequisitos
+- Docker instalado y en ejecución.
+- Docker Compose v2+.
+
+### Pasos para iniciar:
+1. Navegar a la carpeta del servidor:
    ```bash
-   git clone https://github.com/Danilo-Doria/RiwiTask.git
-   cd RiwiTask
+   cd server
    ```
-2. **Compilar y ejecutar:**
+
+2. Levantar los contenedores en segundo plano:
    ```bash
-   mvn spring-boot:run
+   docker compose up -d --build
+   ```
+
+3. Verificar logs del backend:
+   ```bash
+   docker compose logs -f app
+   ```
+
+4. Detener los servicios:
+   ```bash
+   docker compose down
+   ```
+
+> **Servicios expuestos:**
+> - **Backend API:** `http://localhost:8080`
+> - **PostgreSQL:** `localhost:5435` (Usuario: `riwi_user` | Contraseña: `riwi_pass` | DB: `riwitask_db`)
+
+---
+
+## 💻 Ejecución Local sin Docker (Opcional)
+
+Si prefieres ejecutar el backend directamente con Gradle:
+
+1. Asegúrate de tener una instancia de PostgreSQL corriendo en el puerto `5435` con la base de datos `riwitask_db` (o ajusta las variables en `server/src/main/resources/application.yaml`).
+2. Entra a la carpeta del backend y ejecuta:
+   ```bash
+   cd server
+   ./gradlew bootRun
    ```
 
 ---
 
-## 🔗 Tabla de Endpoints
-| Método | Ruta | Descripción | Estado HTTP |
-| :--- | :--- | :--- | :--- |
-| **POST** | `/api/v1/clients` | Registrar un cliente | `201 Created` |
-| **GET** | `/api/v1/clients` | Listar todos los clientes | `200 OK` |
-| **GET** | `/api/v1/clients/{id}` | Obtener cliente por ID | `200 OK` |
-| **PUT** | `/api/v1/clients/{id}` | Actualizar cliente | `200 OK` |
-| **DELETE** | `/api/v1/clients/{id}` | Eliminar cliente | `204 No Content` |
-| **POST** | `/api/v1/tasks` | Crear tarea para un cliente | `201 Created` |
-| **GET** | `/api/v1/tasks` | Listar todas las tareas | `200 OK` |
-| **GET** | `/api/v1/tasks/{id}` | Obtener tarea por ID | `200 OK` |
-| **GET** | `/api/v1/tasks/client/{clientId}?status=PENDIENTE` | Filtrar tareas por cliente y estado (DESC) | `200 OK` |
-| **PUT** | `/api/v1/tasks/{id}` | Actualizar tarea | `200 OK` |
-| **DELETE** | `/api/v1/tasks/{id}` | Eliminar tarea | `204 No Content` |
+## 🔗 Endpoints de la API
+
+### Clientes (`/clients`)
+| Método | Endpoint | Descripción | Body (JSON) | Respuesta exitosa |
+| :--- | :--- | :--- | :--- | :--- |
+| **POST** | `/clients` | Crear un cliente | `{ name, email, password }` | `201 Created` |
+| **GET** | `/clients` | Listar todos los clientes | Ninguno | `200 OK` |
+| **GET** | `/clients/{id}` | Obtener cliente por ID | Ninguno | `200 OK` |
+| **PUT** | `/clients/{id}` | Actualizar cliente por ID | `{ name, email, password }` | `200 OK` |
+| **DELETE** | `/clients/{id}` | Eliminar cliente por ID | Ninguno | `204 No Content` |
+
+### Tareas (`/tasks`)
+| Método | Endpoint | Descripción | Body / Parámetros | Respuesta exitosa |
+| :--- | :--- | :--- | :--- | :--- |
+| **POST** | `/tasks` | Crear una tarea | `{ title, description, status, priority, clientId }` | `201 Created` |
+| **GET** | `/tasks` | Listar todas las tareas | Ninguno | `200 OK` |
+| **GET** | `/tasks/{id}` | Obtener tarea por ID | Ninguno | `200 OK` |
+| **GET** | `/tasks/client/{clientId}?status=VALOR` | Filtrar tareas por cliente y estado (DESC por fecha) | `status` (PENDIENTE, EN_PROCESO, COMPLETADA) | `200 OK` |
+| **PUT** | `/tasks/{id}` | Actualizar tarea por ID | `{ title, description, status, priority, clientId }` | `200 OK` |
+| **DELETE** | `/tasks/{id}` | Eliminar tarea por ID | Ninguno | `204 No Content` |
 
 ---
 
