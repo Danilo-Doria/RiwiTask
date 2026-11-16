@@ -64,6 +64,13 @@ La aplicación implementa autenticación basada en **JWT** y control de acceso c
 > Todas las peticiones a endpoints protegidos deben incluir la cabecera HTTP:
 > `Authorization: Bearer <token_jwt>`
 
+### 👤 Cuenta de Administrador por Defecto
+Cada vez que la aplicación arranca (vía Docker o localmente), un seeder automático verifica y crea el usuario administrador si no existe:
+- **Nombre:** `admin`
+- **Correo:** `admin@gmail.com`
+- **Contraseña:** `admin12345678`
+- **Rol:** `ADMIN`
+
 ---
 
 ## 🐳 Despliegue con Docker (Recomendado)
