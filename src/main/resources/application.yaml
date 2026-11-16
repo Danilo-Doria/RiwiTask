@@ -1,11 +1,14 @@
+server:
+  port: ${PORT:8080}
+
 spring:
   application:
     name: Riwi
 
   datasource:
-    url: jdbc:postgresql://localhost:5435/riwitask_db
-    username: riwi_user
-    password: riwi_pass
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5435/riwitask_db}
+    username: ${SPRING_DATASOURCE_USERNAME:riwi_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:riwi_pass}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

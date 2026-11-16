@@ -1,7 +1,26 @@
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: riwitask_app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/riwitask_db
+      SPRING_DATASOURCE_USERNAME: riwi_user
+      SPRING_DATASOURCE_PASSWORD: riwi_pass
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - riwi-net
+
   postgres-db:
     image: postgres:16-alpine
     container_name: riwitask_db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: riwitask_db
       POSTGRES_USER: riwi_user
@@ -10,6 +29,17 @@ services:
       - "5435:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U riwi_user -d riwitask_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - riwi-net
 
 volumes:
   postgres_data:
+
+networks:
+  riwi-net:
+    driver: bridge
