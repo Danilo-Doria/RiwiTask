@@ -1,5 +1,6 @@
 package com.danilodoria.riwitask.dto.request;
 
+import com.danilodoria.riwitask.entity.Role;
 import jakarta.validation.constraints.*;
 
 public record ClientRequestDTO(
@@ -14,5 +15,7 @@ public record ClientRequestDTO(
 
         @NotBlank(message = "La contraseña es obligatoria")
         @Size(min = 6, max = 255, message = "La contraseña debe tener al menos 6 caracteres")
-        String password
+        String password,
+
+        Role role
 ) {}

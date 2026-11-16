@@ -1,6 +1,6 @@
 # RiwiTask 🚀
 
-Proyecto Fullstack para la gestión eficiente de clientes y tareas. El backend está desarrollado con **Spring Boot 4.1.1** y **Java 21**, completamente dockerizado con **Docker & Docker Compose**, y preparado para integrarse con un frontend en el directorio `client/`.
+Proyecto Fullstack para la gestión eficiente de clientes y tareas con seguridad y control de acceso basado en roles (RBAC). El backend está desarrollado con **Spring Boot 4.1.1** y **Java 21**, protegido mediante **Spring Security y JWT**, completamente dockerizado con **Docker & Docker Compose**, y listo para integrarse con un frontend en el directorio `client/`.
 
 ---
 
@@ -14,13 +14,15 @@ RiwiTask/
 │   ├── src/                # Código fuente Java y recursos
 │   │   └── main/
 │   │       ├── java/com/danilodoria/riwitask/
-│   │       │   ├── controller/      # Controladores REST (@RestController)
-│   │       │   ├── dto/             # DTOs inmutables (Java Records)
-│   │       │   ├── entity/          # Entidades JPA (Client, Task, Status, Priority)
-│   │       │   ├── exception/       # Manejador global de excepciones
+│   │       │   ├── config/          # SecurityConfig, JwtAuthenticationFilter
+│   │       │   ├── controller/      # AuthController, ClientController, TaskController
+│   │       │   ├── dto/             # Request & Response Records (Auth, Client, Task)
+│   │       │   ├── entity/          # Entidades JPA (Client, Task, Role, Status, Priority)
+│   │       │   ├── exception/       # GlobalExceptionHandler
 │   │       │   ├── mappers/         # Interfaces MapStruct
 │   │       │   ├── repository/      # Repositorios Spring Data JPA
-│   │       │   └── service/         # Servicios con lógica de negocio
+│   │       │   ├── security/        # JwtService, CustomUserDetailsService, SecurityUtils
+│   │       │   └── service/         # AuthService, ClientService, TaskService
 │   │       └── resources/
 │   │           └── application.yaml # Configuración de la aplicación
 │   ├── Dockerfile          # Imagen Docker multi-stage (JDK 21 -> JRE 21 Alpine)
@@ -29,6 +31,7 @@ RiwiTask/
 │   └── gradlew             # Script ejecutable de Gradle
 ├── .gitignore              # Reglas de exclusión de Git para client y server
 ├── LICENSE                 # Licencia del proyecto
+├── PROMPT_CLAUDE_FRONTEND.txt # Prompt exhaustivo para el desarrollo del frontend con Claude
 └── README.md               # Documentación general
 ```
 
@@ -38,22 +41,34 @@ RiwiTask/
 
 * **Java 21** - Lenguaje de programación.
 * **Spring Boot 4.1.1** - Framework backend.
+* **Spring Security 7** - Autenticación, autorización y filtros de seguridad.
+* **JJWT (Java JSON Web Token) 0.12.6** - Creación y validación de tokens JWT sin estado (stateless).
 * **Spring Data JPA & Hibernate** - Persistencia relacional y ORM.
 * **PostgreSQL 16** - Motor de base de datos relacional.
-* **Docker & Docker Compose** - Contenedorización y orquestación de servicios.
-* **MapStruct** - Mapeo de Entidades a DTOs.
+* **Docker & Docker Compose** - Contenedorización y orquestación con healthchecks.
+* **MapStruct** - Mapeo desacoplado entre Entidades y DTOs.
 * **Jakarta Bean Validation** - Validación de datos (`@NotBlank`, `@NotNull`, `@Email`, etc.).
 * **Lombok** - Reducción de boilerplate en entidades y servicios.
 
 ---
 
+## 🔐 Seguridad y Control de Acceso (RBAC)
+
+La aplicación implementa autenticación basada en **JWT** y control de acceso con dos roles:
+
+| Rol | Permisos |
+| :--- | :--- |
+| **`ADMIN`** | Acceso global completo. Puede ver, crear, actualizar y eliminar cualquier cliente y cualquier tarea. |
+| **`USER`** | Acceso restringido. Solo puede ver y editar su propio perfil (`/clients/me` o `/clients/{id}` propio) y realizar CRUD sobre sus propias tareas (`/tasks`). No puede ver ni modificar datos de otros clientes. |
+
+> Todas las peticiones a endpoints protegidos deben incluir la cabecera HTTP:
+> `Authorization: Bearer <token_jwt>`
+
+---
+
 ## 🐳 Despliegue con Docker (Recomendado)
 
-El backend y su base de datos PostgreSQL están completamente contenerizados mediante un Dockerfile multi-stage y Docker Compose con healthcheck integrado.
-
-### Prerrequisitos
-- Docker instalado y en ejecución.
-- Docker Compose v2+.
+El backend y su base de datos PostgreSQL están completamente contenerizados.
 
 ### Pasos para iniciar:
 1. Navegar a la carpeta del servidor:
@@ -86,10 +101,13 @@ El backend y su base de datos PostgreSQL están completamente contenerizados med
 
 Si prefieres ejecutar el backend directamente con Gradle:
 
-1. Asegúrate de tener una instancia de PostgreSQL corriendo en el puerto `5435` con la base de datos `riwitask_db` (o ajusta las variables en `server/src/main/resources/application.yaml`).
-2. Entra a la carpeta del backend y ejecuta:
+1. Levanta la base de datos PostgreSQL en el puerto `5435`:
    ```bash
    cd server
+   docker compose up -d postgres-db
+   ```
+2. Ejecuta el backend:
+   ```bash
    ./gradlew bootRun
    ```
 
@@ -97,24 +115,31 @@ Si prefieres ejecutar el backend directamente con Gradle:
 
 ## 🔗 Endpoints de la API
 
-### Clientes (`/clients`)
-| Método | Endpoint | Descripción | Body (JSON) | Respuesta exitosa |
+### 1. Autenticación (`/auth`) - *Públicos*
+| Método | Endpoint | Descripción | Body (JSON) | Respuesta |
 | :--- | :--- | :--- | :--- | :--- |
-| **POST** | `/clients` | Crear un cliente | `{ name, email, password }` | `201 Created` |
-| **GET** | `/clients` | Listar todos los clientes | Ninguno | `200 OK` |
-| **GET** | `/clients/{id}` | Obtener cliente por ID | Ninguno | `200 OK` |
-| **PUT** | `/clients/{id}` | Actualizar cliente por ID | `{ name, email, password }` | `200 OK` |
-| **DELETE** | `/clients/{id}` | Eliminar cliente por ID | Ninguno | `204 No Content` |
+| **POST** | `/auth/register` | Registrar nuevo usuario | `{ name, email, password, role? }` | `201 Created` (`token`, `client`) |
+| **POST** | `/auth/login` | Iniciar sesión | `{ email, password }` | `200 OK` (`token`, `client`) |
 
-### Tareas (`/tasks`)
-| Método | Endpoint | Descripción | Body / Parámetros | Respuesta exitosa |
-| :--- | :--- | :--- | :--- | :--- |
-| **POST** | `/tasks` | Crear una tarea | `{ title, description, status, priority, clientId }` | `201 Created` |
-| **GET** | `/tasks` | Listar todas las tareas | Ninguno | `200 OK` |
-| **GET** | `/tasks/{id}` | Obtener tarea por ID | Ninguno | `200 OK` |
-| **GET** | `/tasks/client/{clientId}?status=VALOR` | Filtrar tareas por cliente y estado (DESC por fecha) | `status` (PENDIENTE, EN_PROCESO, COMPLETADA) | `200 OK` |
-| **PUT** | `/tasks/{id}` | Actualizar tarea por ID | `{ title, description, status, priority, clientId }` | `200 OK` |
-| **DELETE** | `/tasks/{id}` | Eliminar tarea por ID | Ninguno | `204 No Content` |
+### 2. Clientes (`/clients`) - *Protegidos con JWT*
+| Método | Endpoint | Rol Requerido | Descripción |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/clients/me` | `USER` / `ADMIN` | Obtener perfil del usuario autenticado |
+| **GET** | `/clients` | `ADMIN` | Listar todos los clientes |
+| **GET** | `/clients/{id}` | Propietario o `ADMIN` | Obtener cliente por ID |
+| **POST** | `/clients` | `ADMIN` | Crear cliente directo (o usar `/auth/register`) |
+| **PUT** | `/clients/{id}` | Propietario o `ADMIN` | Actualizar cliente |
+| **DELETE** | `/clients/{id}` | `ADMIN` | Eliminar cliente |
+
+### 3. Tareas (`/tasks`) - *Protegidos con JWT*
+| Método | Endpoint | Rol Requerido | Descripción |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/tasks` | `USER` / `ADMIN` | `ADMIN` obtiene todas las tareas; `USER` obtiene solo las suyas |
+| **GET** | `/tasks/{id}` | Propietario o `ADMIN` | Obtener tarea por ID |
+| **POST** | `/tasks` | Propietario o `ADMIN` | Crear tarea (USER solo con su propio `clientId`) |
+| **PUT** | `/tasks/{id}` | Propietario o `ADMIN` | Actualizar tarea existente |
+| **DELETE** | `/tasks/{id}` | Propietario o `ADMIN` | Eliminar tarea |
+| **GET** | `/tasks/client/{clientId}?status=VALOR` | Propietario o `ADMIN` | Filtrar tareas por cliente y estado (DESC) |
 
 ---
 

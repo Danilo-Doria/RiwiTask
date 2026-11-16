@@ -9,7 +9,9 @@ import com.danilodoria.riwitask.exception.ResourceNotFoundException;
 import com.danilodoria.riwitask.mappers.TaskMapper;
 import com.danilodoria.riwitask.repository.ClientRepository;
 import com.danilodoria.riwitask.repository.TaskRepository;
+import com.danilodoria.riwitask.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,11 +27,14 @@ public class TaskService {
 
     @Transactional
     public TaskResponseDTO create(TaskRequestDTO requestDTO) {
+        if (!SecurityUtils.isOwnerOrAdmin(requestDTO.clientId())) {
+            throw new AccessDeniedException("No tienes permiso para crear tareas para otro cliente");
+        }
+
         Client client = clientRepository.findById(requestDTO.clientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con ID: " + requestDTO.clientId()));
 
         Task task = taskMapper.toEntity(requestDTO);
-
         task.setClient(client);
 
         Task savedTask = taskRepository.save(task);
@@ -40,12 +45,26 @@ public class TaskService {
     public TaskResponseDTO findById(Long id) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarea no encontrada con ID: " + id));
+
+        if (!SecurityUtils.isOwnerOrAdmin(task.getClient().getId())) {
+            throw new AccessDeniedException("No tienes permiso para ver esta tarea");
+        }
+
         return taskMapper.toResponseDTO(task);
     }
 
     @Transactional(readOnly = true)
     public List<TaskResponseDTO> findAll() {
-        return taskRepository.findAll()
+        if (SecurityUtils.isAdmin()) {
+            return taskRepository.findAll()
+                    .stream()
+                    .map(taskMapper::toResponseDTO)
+                    .toList();
+        }
+
+        // Si es rol USER, solo devuelve sus propias tareas ordenadas por fecha
+        Long currentClientId = SecurityUtils.getCurrentUser().getId();
+        return taskRepository.findByClientIdOrderByCreatedAtDesc(currentClientId)
                 .stream()
                 .map(taskMapper::toResponseDTO)
                 .toList();
@@ -55,6 +74,14 @@ public class TaskService {
     public TaskResponseDTO update(Long id, TaskRequestDTO requestDTO) {
         Task existingTask = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarea no encontrada con ID: " + id));
+
+        if (!SecurityUtils.isOwnerOrAdmin(existingTask.getClient().getId())) {
+            throw new AccessDeniedException("No tienes permiso para actualizar esta tarea");
+        }
+
+        if (!SecurityUtils.isAdmin() && !requestDTO.clientId().equals(existingTask.getClient().getId())) {
+            throw new AccessDeniedException("No tienes permiso para reasignar tu tarea a otro cliente");
+        }
 
         if (!existingTask.getClient().getId().equals(requestDTO.clientId())) {
             Client newClient = clientRepository.findById(requestDTO.clientId())
@@ -73,15 +100,23 @@ public class TaskService {
 
     @Transactional
     public void delete(Long id) {
-        if (!taskRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Tarea no encontrada con ID: " + id);
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Tarea no encontrada con ID: " + id));
+
+        if (!SecurityUtils.isOwnerOrAdmin(task.getClient().getId())) {
+            throw new AccessDeniedException("No tienes permiso para eliminar esta tarea");
         }
-        taskRepository.deleteById(id);
+
+        taskRepository.delete(task);
     }
 
-    // Consulta especial requerida
+    // Consulta filtrada por cliente y estado (ordenada DESC por fecha de creación)
     @Transactional(readOnly = true)
     public List<TaskResponseDTO> findByClientIdAndStatusSorted(Long clientId, Status status) {
+        if (!SecurityUtils.isOwnerOrAdmin(clientId)) {
+            throw new AccessDeniedException("No tienes permiso para consultar tareas de otro cliente");
+        }
+
         if (!clientRepository.existsById(clientId)) {
             throw new ResourceNotFoundException("Cliente no encontrado con ID: " + clientId);
         }

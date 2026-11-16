@@ -31,6 +31,11 @@ public class ClientController {
         return ResponseEntity.created(location).body(createdClient);
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<ClientResponseDTO> getMe() {
+        return ResponseEntity.ok(clientService.getMe());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ClientResponseDTO> findById(@PathVariable Long id) {
         return ResponseEntity.ok(clientService.findById(id));
