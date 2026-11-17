@@ -39,6 +39,7 @@ export class AuthService {
   readonly isAuthenticated = computed(() => this._token() !== null && this._currentUser() !== null);
   readonly isAdmin = computed(() => this._currentUser()?.role === Role.ADMIN);
 
+  /* En TypeScript y JavaScript, el constructor() es un método especial dentro de una clase que se ejecuta automáticamente en el instante exacto en que se crea una instancia de esa clase. */
   constructor() {
     this.restoreSession();
   }
