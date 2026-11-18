@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
-  imports: [],
   selector: 'app-task-list',
-  styleUrl: './task-list.css',
   templateUrl: './task-list.html',
 })
-export class TaskList {}
+export class TaskList {
+  protected readonly authService = inject(AuthService);
+}
