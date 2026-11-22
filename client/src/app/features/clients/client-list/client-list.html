@@ -1,0 +1,85 @@
+<div class="flex items-center justify-between">
+  <h1 class="text-2xl font-bold text-slate-900">Gestión de clientes</h1>
+  <span class="text-sm text-slate-500">{{ clients().length }} en total</span>
+</div>
+
+@if (errorMessage(); as message) {
+  <div class="mt-6 flex items-center justify-between rounded-lg bg-red-50 p-4 text-sm text-red-700" role="alert">
+    <span>{{ message }}</span>
+    <button (click)="loadClients()" class="font-semibold underline">Reintentar</button>
+  </div>
+}
+
+@if (loading()) {
+  <p class="mt-10 text-center text-slate-500">Cargando clientes...</p>
+} @else {
+  <div class="mt-6 overflow-x-auto rounded-xl bg-white shadow-sm">
+    <table class="w-full text-left text-sm">
+      <thead class="border-b border-slate-100 bg-slate-50 text-xs uppercase text-slate-500">
+        <tr>
+          <th class="px-4 py-3">Nombre</th>
+          <th class="px-4 py-3">Correo</th>
+          <th class="px-4 py-3">Rol</th>
+          <th class="px-4 py-3">Estado</th>
+          <th class="px-4 py-3 text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        @for (client of clients(); track client.id) {
+          <tr>
+            <td class="px-4 py-3 font-medium text-slate-900">
+              {{ client.name }}
+              @if (client.id === authService.currentUser()?.id) {
+                <span class="ml-1 text-xs text-slate-400">(tú)</span>
+              }
+            </td>
+            <td class="px-4 py-3 text-slate-600">{{ client.email }}</td>
+            <td class="px-4 py-3">
+              <span
+                class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                [class]="client.role === 'ADMIN' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'"
+              >
+                {{ client.role }}
+              </span>
+            </td>
+            <td class="px-4 py-3">
+              <span
+                class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                [class]="client.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+              >
+                {{ client.active ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-right">
+              <a
+                [routerLink]="['/clients', client.id, 'edit']"
+                class="mr-4 font-medium text-indigo-600 hover:underline"
+              >
+                Editar
+              </a>
+              @if (client.id !== authService.currentUser()?.id) {
+                <button (click)="requestDelete(client)" class="font-medium text-red-600 hover:underline">
+                  Eliminar
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="px-4 py-8 text-center text-slate-500">No hay clientes.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (clientToDelete(); as client) {
+  <app-confirm-modal
+    heading="Eliminar cliente"
+    [message]="'¿Seguro que quieres eliminar a «' + client.name + '»? Esta acción no se puede deshacer.'"
+    [loading]="deleting()"
+    (confirmed)="confirmDelete()"
+    (cancelled)="closeDeleteModal()"
+  />
+}

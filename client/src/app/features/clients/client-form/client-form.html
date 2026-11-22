@@ -1,0 +1,117 @@
+<div class="mx-auto w-full max-w-xl rounded-2xl bg-white p-8 shadow-lg">
+  <h1 class="text-2xl font-bold text-slate-900">
+    {{ isProfile() ? 'Mi perfil' : 'Editar cliente' }}
+  </h1>
+
+  @if (loading()) {
+    <p class="mt-6 text-center text-slate-500">Cargando...</p>
+  } @else if (client()) {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-6 space-y-4" novalidate>
+      <div>
+        <label for="name" class="block text-sm font-medium text-slate-700">Nombre</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+        />
+        @if (form.controls.name.touched && form.controls.name.invalid) {
+          <p class="mt-1 text-sm text-red-600">
+            @if (form.controls.name.hasError('required')) {
+              El nombre es obligatorio
+            } @else {
+              Máximo 255 caracteres
+            }
+          </p>
+        }
+        @if (fieldErrors()['name']; as serverError) {
+          <p class="mt-1 text-sm text-red-600">{{ serverError }}</p>
+        }
+      </div>
+
+      <div>
+        <label for="email" class="block text-sm font-medium text-slate-700">Correo</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+        />
+        @if (form.controls.email.touched && form.controls.email.invalid) {
+          <p class="mt-1 text-sm text-red-600">
+            @if (form.controls.email.hasError('required')) {
+              El correo es obligatorio
+            } @else {
+              Ingresa un correo válido
+            }
+          </p>
+        }
+        @if (fieldErrors()['email']; as serverError) {
+          <p class="mt-1 text-sm text-red-600">{{ serverError }}</p>
+        }
+        @if (isProfile()) {
+          <p class="mt-1 text-xs text-slate-500">Si cambias tu correo tendrás que iniciar sesión de nuevo.</p>
+        }
+      </div>
+
+      <div>
+        <label for="password" class="block text-sm font-medium text-slate-700">Nueva contraseña</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          autocomplete="new-password"
+          placeholder="Déjala vacía para no cambiarla"
+          class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+        />
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <p class="mt-1 text-sm text-red-600">Debe tener al menos 6 caracteres</p>
+        }
+        @if (fieldErrors()['password']; as serverError) {
+          <p class="mt-1 text-sm text-red-600">{{ serverError }}</p>
+        }
+      </div>
+
+      @if (canEditRole()) {
+        <div>
+          <label for="role" class="block text-sm font-medium text-slate-700">Rol</label>
+          <select
+            id="role"
+            formControlName="role"
+            class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          >
+            @for (role of roles; track role) {
+              <option [value]="role">{{ role }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      @if (successMessage(); as message) {
+        <div class="rounded-lg bg-green-50 p-3 text-sm text-green-700" role="status">{{ message }}</div>
+      }
+
+      @if (errorMessage(); as message) {
+        <div class="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">{{ message }}</div>
+      }
+
+      <div class="flex justify-end gap-3 pt-2">
+        <a
+          [routerLink]="isProfile() ? '/tasks' : '/clients'"
+          class="rounded-lg bg-slate-100 px-4 py-2 font-medium text-slate-700 hover:bg-slate-200"
+        >
+          {{ isProfile() ? 'Volver' : 'Cancelar' }}
+        </a>
+        <button
+          type="submit"
+          [disabled]="saving()"
+          class="rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {{ saving() ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  } @else if (errorMessage(); as message) {
+    <div class="mt-6 rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">{{ message }}</div>
+  }
+</div>

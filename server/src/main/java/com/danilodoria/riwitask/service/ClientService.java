@@ -1,6 +1,7 @@
 package com.danilodoria.riwitask.service;
 
 import com.danilodoria.riwitask.dto.request.ClientRequestDTO;
+import com.danilodoria.riwitask.dto.request.ClientUpdateRequestDTO;
 import com.danilodoria.riwitask.dto.response.ClientResponseDTO;
 import com.danilodoria.riwitask.entity.Client;
 import com.danilodoria.riwitask.entity.Role;
@@ -78,7 +79,7 @@ public class ClientService {
     }
 
     @Transactional
-    public ClientResponseDTO update(Long id, ClientRequestDTO requestDTO) {
+    public ClientResponseDTO update(Long id, ClientUpdateRequestDTO requestDTO) {
         if (!SecurityUtils.isOwnerOrAdmin(id)) {
             throw new AccessDeniedException("No tienes permiso para actualizar este cliente");
         }
@@ -100,6 +101,12 @@ public class ClientService {
 
         // Solo el admin puede cambiar el rol
         if (requestDTO.role() != null && SecurityUtils.isAdmin()) {
+            boolean demotingSelf = existingClient.getRole() == Role.ADMIN
+                    && requestDTO.role() != Role.ADMIN
+                    && SecurityUtils.isOwner(id);
+            if (demotingSelf) {
+                throw new AccessDeniedException("No puedes quitarte tu propio rol de administrador");
+            }
             existingClient.setRole(requestDTO.role());
         }
 

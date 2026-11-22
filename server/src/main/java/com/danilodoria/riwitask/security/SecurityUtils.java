@@ -26,4 +26,8 @@ public final class SecurityUtils {
         Client current = getCurrentUser();
         return current.getRole() == Role.ADMIN || current.getId().equals(clientId);
     }
+
+    public static boolean isOwner(Long clientId) {
+        return getCurrentUser().getId().equals(clientId);
+    }
 }

@@ -1,6 +1,7 @@
 package com.danilodoria.riwitask.controller;
 
 import com.danilodoria.riwitask.dto.request.ClientRequestDTO;
+import com.danilodoria.riwitask.dto.request.ClientUpdateRequestDTO;
 import com.danilodoria.riwitask.dto.response.ClientResponseDTO;
 import com.danilodoria.riwitask.service.ClientService;
 import jakarta.validation.Valid;
@@ -49,7 +50,7 @@ public class ClientController {
     @PutMapping("/{id}")
     public ResponseEntity<ClientResponseDTO> update(
             @PathVariable Long id,
-            @Valid @RequestBody ClientRequestDTO requestDTO) {
+            @Valid @RequestBody ClientUpdateRequestDTO requestDTO) {
         return ResponseEntity.ok(clientService.update(id, requestDTO));
     }
 

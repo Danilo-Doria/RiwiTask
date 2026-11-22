@@ -76,6 +76,12 @@ export class AuthService {
     this._currentUser.set(null);
   }
 
+  /** Actualiza los datos del usuario logueado (por ejemplo, tras editar su perfil). */
+  updateCurrentUser(client: ClientResponseDTO): void {
+    localStorage.setItem(USER_KEY, JSON.stringify(client));
+    this._currentUser.set(client);
+  }
+
   private saveSession(response: AuthResponseDTO): void {
     localStorage.setItem(TOKEN_KEY, response.token);
     localStorage.setItem(USER_KEY, JSON.stringify(response.client));
