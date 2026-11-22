@@ -14,6 +14,13 @@ export function getErrorMessage(error: unknown): string {
   return 'Ocurrió un error inesperado. Inténtalo de nuevo.';
 }
 
+export function getFieldErrors(error: unknown): Record<string, string> {
+  if (error instanceof HttpErrorResponse && error.status === 400) {
+    const body = error.error as Partial<ErrorResponseDTO> | null;
+    return body?.errors ?? {};
+  }
+  return {};
+}
 /* - error: unknown. En TypeScript moderno, los errores capturados tienen por defecto el tipo unknown (desconocido), porque en JavaScript se puede lanzar cualquier cosa como error (un texto, un objeto HTTP, un fallo de código). 
 
 - instanceof HttpErrorResponse. Comprueba si el fallo proviene realmente de una petición hecha con HttpClient (y no de un error de sintaxis o de JavaScript local). Si es un error de red, entra al bloque; si no, salta directamente al mensaje genérico del final.

@@ -1,0 +1,124 @@
+<div class="min-h-screen bg-slate-100 p-4">
+  <div class="mx-auto mt-6 w-full max-w-xl rounded-2xl bg-white p-8 shadow-lg">
+    <h1 class="text-2xl font-bold text-slate-900">
+      {{ isEdit() ? 'Editar tarea' : 'Nueva tarea' }}
+    </h1>
+
+    @if (loading()) {
+      <p class="mt-6 text-center text-slate-500">Cargando tarea...</p>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-6 space-y-4" novalidate>
+        <div>
+          <label for="title" class="block text-sm font-medium text-slate-700">Título</label>
+          <input
+            id="title"
+            type="text"
+            formControlName="title"
+            class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          />
+          @if (form.controls.title.touched && form.controls.title.invalid) {
+            <p class="mt-1 text-sm text-red-600">
+              @if (form.controls.title.hasError('required')) {
+                El título es obligatorio
+              } @else {
+                Máximo 100 caracteres
+              }
+            </p>
+          }
+          @if (fieldErrors()['title']; as serverError) {
+            <p class="mt-1 text-sm text-red-600">{{ serverError }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="description" class="block text-sm font-medium text-slate-700">Descripción</label>
+          <textarea
+            id="description"
+            formControlName="description"
+            rows="4"
+            class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          ></textarea>
+          @if (form.controls.description.touched && form.controls.description.invalid) {
+            <p class="mt-1 text-sm text-red-600">
+              @if (form.controls.description.hasError('required')) {
+                La descripción es obligatoria
+              } @else {
+                Máximo 255 caracteres
+              }
+            </p>
+          }
+          @if (fieldErrors()['description']; as serverError) {
+            <p class="mt-1 text-sm text-red-600">{{ serverError }}</p>
+          }
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label for="status" class="block text-sm font-medium text-slate-700">Estado</label>
+            <select
+              id="status"
+              formControlName="status"
+              class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            >
+              @for (status of statuses; track status) {
+                <option [value]="status">{{ statusLabels[status] }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label for="priority" class="block text-sm font-medium text-slate-700">Prioridad</label>
+            <select
+              id="priority"
+              formControlName="priority"
+              class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            >
+              @for (priority of priorities; track priority) {
+                <option [value]="priority">{{ priorityLabels[priority] }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        @if (authService.isAdmin()) {
+          <div>
+            <label for="clientId" class="block text-sm font-medium text-slate-700">Cliente</label>
+            <select
+              id="clientId"
+              formControlName="clientId"
+              class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            >
+              <option [ngValue]="0" disabled>Selecciona un cliente</option>
+              @for (client of clients(); track client.id) {
+                <option [ngValue]="client.id">{{ client.name }} ({{ client.email }})</option>
+              }
+            </select>
+            @if (form.controls.clientId.touched && form.controls.clientId.invalid) {
+              <p class="mt-1 text-sm text-red-600">Selecciona un cliente</p>
+            }
+          </div>
+        }
+
+        @if (errorMessage(); as message) {
+          <div class="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">{{ message }}</div>
+        }
+
+        <div class="flex justify-end gap-3 pt-2">
+          <a
+            routerLink="/tasks"
+            class="rounded-lg bg-slate-100 px-4 py-2 font-medium text-slate-700 hover:bg-slate-200"
+          >
+            Cancelar
+          </a>
+          <button
+            type="submit"
+            [disabled]="saving()"
+            class="rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

@@ -18,6 +18,16 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/tasks/task-list/task-list').then((m) => m.TaskList),
   },
+  {
+    path: 'tasks/new',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/tasks/task-form/task-form').then((m) => m.TaskForm),
+  },
+  {
+    path: 'tasks/:id/edit',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/tasks/task-form/task-form').then((m) => m.TaskForm),
+  },
   { path: '', pathMatch: 'full', redirectTo: 'tasks' },
   { path: '**', redirectTo: 'tasks' },
 ];
