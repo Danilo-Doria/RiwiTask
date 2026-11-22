@@ -1,12 +1,10 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
-import { getErrorMessage } from '../../../core/utils/api-error';
+import { getErrorMessage, getFieldErrors } from '../../../core/utils/api-error';
 import { passwordsMatch } from '../../../core/utils/validators';
-import { ErrorResponseDTO } from '../../../models/error.model';
 
 @Component({
   selector: 'app-register',
@@ -48,10 +46,9 @@ export class Register {
     this.authService.register({ name, email, password }).subscribe({
       next: () => this.router.navigate(['/tasks']),
       error: (error) => {
-        const body = error instanceof HttpErrorResponse ? (error.error as Partial<ErrorResponseDTO>) : null;
-        // 400: errores por campo. Cualquier otro (409 email duplicado, red caída...): mensaje general
-        if (error.status === 400 && body?.errors) {
-          this.fieldErrors.set(body.errors);
+        const fieldErrors = getFieldErrors(error);
+        if (Object.keys(fieldErrors).length > 0) {
+          this.fieldErrors.set(fieldErrors);
         } else {
           this.errorMessage.set(getErrorMessage(error));
         }

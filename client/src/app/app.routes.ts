@@ -56,5 +56,12 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'tasks' },
     ],
   },
-  { path: '**', redirectTo: 'tasks' },
+  {
+    path: '404',
+    loadComponent: () => import('./features/not-found/not-found').then((m) => m.NotFound),
+  },
+  {
+    path: '**',
+    loadComponent: () => import('./features/not-found/not-found').then((m) => m.NotFound),
+  },
 ];
