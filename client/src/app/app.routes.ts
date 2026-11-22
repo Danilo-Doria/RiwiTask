@@ -5,36 +5,35 @@ import { guestGuard } from './core/guards/guest.guard';
 
 export const routes: Routes = [
   {
-    path: 'register',
-    canActivate: [guestGuard],
-    loadComponent: () => import('./features/auth/register/register').then((m) => m.Register),
-  },
-  { path: 'login',
+    path: 'login',
     canActivate: [guestGuard],
     loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
   },
   {
-    path: 'tasks',
-    canActivate: [authGuard],
-    loadComponent: () => import('./features/tasks/task-list/task-list').then((m) => m.TaskList),
+    path: 'register',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./features/auth/register/register').then((m) => m.Register),
   },
   {
-    path: 'tasks/new',
+    // Ruta padre sin segmento propio: solo aporta el layout y el guard
+    path: '',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/tasks/task-form/task-form').then((m) => m.TaskForm),
+    loadComponent: () => import('./shared/main-layout/main-layout').then((m) => m.MainLayout),
+    children: [
+      {
+        path: 'tasks',
+        loadComponent: () => import('./features/tasks/task-list/task-list').then((m) => m.TaskList),
+      },
+      {
+        path: 'tasks/new',
+        loadComponent: () => import('./features/tasks/task-form/task-form').then((m) => m.TaskForm),
+      },
+      {
+        path: 'tasks/:id/edit',
+        loadComponent: () => import('./features/tasks/task-form/task-form').then((m) => m.TaskForm),
+      },
+      { path: '', pathMatch: 'full', redirectTo: 'tasks' },
+    ],
   },
-  {
-    path: 'tasks/:id/edit',
-    canActivate: [authGuard],
-    loadComponent: () => import('./features/tasks/task-form/task-form').then((m) => m.TaskForm),
-  },
-  { path: '', pathMatch: 'full', redirectTo: 'tasks' },
   { path: '**', redirectTo: 'tasks' },
 ];
-
-/* 
-- loadComponent recibe una función con un import() dinámico: ahí ocurre el lazy loading.
-
-- pathMatch: 'full' hace que la redirección solo aplique a la ruta vacía exacta.
-'**' es el comodín: captura cualquier URL desconocida. Debe ir al final, porque el router evalúa en orden.
-Si no hay sesión, entrar a /tasks te manda a /login gracias a authGuard. */
