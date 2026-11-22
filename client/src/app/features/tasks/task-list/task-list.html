@@ -1,99 +1,238 @@
-<div class="flex flex-wrap items-center justify-between gap-4">
-  <div class="flex items-center gap-4">
-    <h1 class="text-2xl font-bold text-slate-900">
-      {{ authService.isAdmin() ? 'Todas las tareas' : 'Mis tareas' }}
-    </h1>
-    <a
-      routerLink="/tasks/new"
-      class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700"
-    >
-      + Nueva tarea
-    </a>
+<!-- Header & Primary Action -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2">
+  <div>
+    <div class="flex items-center gap-2.5">
+      <h1 class="text-2xl font-bold tracking-tight text-slate-900">
+        {{ authService.isAdmin() ? 'Todas las tareas' : 'Mis tareas' }}
+      </h1>
+      <span class="inline-flex items-center justify-center rounded-full bg-slate-200/70 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+        {{ taskCount() }}
+      </span>
+    </div>
+    <p class="mt-1 text-sm text-slate-500">
+      {{ authService.isAdmin() ? 'Supervisión y control global de tareas de clientes' : 'Organiza, gestiona y monitorea tus actividades diarias' }}
+    </p>
   </div>
 
-  <div class="flex flex-wrap gap-2" role="group" aria-label="Filtrar por estado">
-    <button
-      (click)="setFilter(null)"
-      [class]="
-        filter() === null
-          ? 'rounded-full bg-indigo-600 px-3 py-1 text-sm font-medium text-white'
-          : 'rounded-full bg-white px-3 py-1 text-sm font-medium text-slate-700 hover:bg-slate-200'
-      "
-    >
-      Todas
-    </button>
-    @for (status of statuses; track status) {
-      <button
-        (click)="setFilter(status)"
-        [class]="
-          filter() === status
-            ? 'rounded-full bg-indigo-600 px-3 py-1 text-sm font-medium text-white'
-            : 'rounded-full bg-white px-3 py-1 text-sm font-medium text-slate-700 hover:bg-slate-200'
-        "
-      >
-        {{ statusLabels[status] }}
-      </button>
-    }
-  </div>
+  <a
+    routerLink="/tasks/new"
+    class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-700 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer self-start sm:self-auto"
+  >
+    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+    <span>Nueva tarea</span>
+  </a>
 </div>
 
+<!-- Filter Bar -->
+<div class="mt-4 flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar" role="group" aria-label="Filtrar tareas por estado">
+  <button
+    type="button"
+    (click)="setFilter(null)"
+    [class]="
+      filter() === null
+        ? 'bg-slate-900 text-white shadow-xs'
+        : 'bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/80'
+    "
+    class="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition cursor-pointer"
+  >
+    <span>Todas</span>
+    <span
+      class="rounded px-1.5 py-0.2 text-[11px] font-semibold"
+      [class]="filter() === null ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'"
+    >
+      {{ taskCount() }}
+    </span>
+  </button>
+
+  @for (status of statuses; track status) {
+    <button
+      type="button"
+      (click)="setFilter(status)"
+      [class]="
+        filter() === status
+          ? 'bg-indigo-600 text-white shadow-xs'
+          : 'bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/80'
+      "
+      class="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition cursor-pointer"
+    >
+      <span>{{ statusLabels[status] }}</span>
+      <span
+        class="rounded px-1.5 py-0.2 text-[11px] font-semibold"
+        [class]="filter() === status ? 'bg-indigo-700 text-white' : 'bg-slate-100 text-slate-600'"
+      >
+        {{ statusCounts()[status] || 0 }}
+      </span>
+    </button>
+  }
+</div>
+
+<!-- Global Error Notification -->
 @if (errorMessage(); as message) {
-  <div class="mt-6 flex items-center justify-between rounded-lg bg-red-50 p-4 text-sm text-red-700" role="alert">
-    <span>{{ message }}</span>
-    <button (click)="loadTasks()" class="font-semibold underline">Reintentar</button>
+  <div class="mt-6 flex items-center justify-between rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">
+    <div class="flex items-center gap-3">
+      <svg class="h-5 w-5 text-red-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+      </svg>
+      <span>{{ message }}</span>
+    </div>
+    <button (click)="loadTasks()" class="font-semibold text-red-700 hover:underline cursor-pointer">
+      Reintentar
+    </button>
   </div>
 }
 
+<!-- Content Section: Skeletons vs Grid vs Empty State -->
 @if (loading()) {
-  <p class="mt-10 text-center text-slate-500">Cargando tareas...</p>
-} @else {
+  <!-- Skeleton Loader Grid -->
   <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    @for (task of filteredTasks(); track task.id) {
-      <article class="flex flex-col rounded-xl bg-white p-5 shadow-sm">
-        <div class="flex items-start justify-between gap-2">
-          <h3 class="font-semibold text-slate-900">{{ task.title }}</h3>
-          <app-priority-badge [priority]="task.priority" />
+    @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+      <div class="flex flex-col justify-between rounded-xl border border-slate-200/70 bg-white p-5 animate-pulse">
+        <div>
+          <div class="flex items-center justify-between gap-3">
+            <div class="h-5 w-3/5 rounded-md bg-slate-200"></div>
+            <div class="h-5 w-16 rounded-md bg-slate-200"></div>
+          </div>
+          <div class="mt-3 space-y-2">
+            <div class="h-3.5 w-full rounded bg-slate-100"></div>
+            <div class="h-3.5 w-4/5 rounded bg-slate-100"></div>
+          </div>
         </div>
-
-        <p class="mt-2 flex-1 text-sm text-slate-600">{{ task.description }}</p>
-
-        <div class="mt-4 flex items-center justify-between">
-          <app-status-badge [status]="task.status" />
-          <span class="text-xs text-slate-400">{{ task.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+        <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+          <div class="h-5 w-20 rounded bg-slate-200"></div>
+          <div class="h-4 w-16 rounded bg-slate-100"></div>
         </div>
-
-        @if (authService.isAdmin()) {
-          <p class="mt-3 text-xs text-slate-500">Cliente: {{ task.client.name }}</p>
-        }
-
-        <div class="mt-4 flex justify-end gap-4 border-t border-slate-100 pt-3">
-          <a
-            [routerLink]="['/tasks', task.id, 'edit']"
-            class="text-sm font-medium text-indigo-600 hover:underline"
-          >
-            Editar
-          </a>
-          <button (click)="requestDelete(task)" class="text-sm font-medium text-red-600 hover:underline">
-            Eliminar
-          </button>
-        </div>
-      </article>
-    } @empty {
-      <p class="col-span-full mt-6 text-center text-slate-500">
-        @if (filter()) {
-          No hay tareas con ese estado.
-        } @else {
-          Aún no hay tareas.
-        }
-      </p>
+      </div>
     }
   </div>
+} @else {
+  @if (filteredTasks().length > 0) {
+    <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      @for (task of filteredTasks(); track task.id) {
+        <article class="group flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-5 hover:border-slate-300 hover:shadow-xs transition-all duration-200">
+          <div>
+            <!-- Top Row: Title & Priority -->
+            <div class="flex items-start justify-between gap-2.5">
+              <h2 class="font-semibold text-slate-900 leading-snug group-hover:text-indigo-600 transition-colors line-clamp-2">
+                {{ task.title }}
+              </h2>
+              <div class="shrink-0">
+                <app-priority-badge [priority]="task.priority" />
+              </div>
+            </div>
+
+            <!-- Description -->
+            <p class="mt-2.5 text-sm text-slate-600 leading-relaxed line-clamp-3">
+              {{ task.description }}
+            </p>
+          </div>
+
+          <div class="mt-5">
+            <!-- Metadata: Status & Date -->
+            <div class="flex items-center justify-between pt-1">
+              <app-status-badge [status]="task.status" />
+              <span class="inline-flex items-center gap-1 text-xs text-slate-400">
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                {{ task.createdAt | date: 'dd/MM/yyyy' }}
+              </span>
+            </div>
+
+            <!-- Client Info for ADMIN -->
+            @if (authService.isAdmin()) {
+              <div class="mt-3 flex items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs text-slate-600 border border-slate-100">
+                <svg class="h-3.5 w-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                <span class="font-medium text-slate-700 truncate">{{ task.client.name }}</span>
+              </div>
+            }
+
+            <!-- Actions Footer -->
+            <div class="mt-4 flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
+              <a
+                [routerLink]="['/tasks', task.id, 'edit']"
+                class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition focus:outline-none"
+              >
+                <svg class="h-3.5 w-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                <span>Editar</span>
+              </a>
+
+              <button
+                type="button"
+                (click)="requestDelete(task)"
+                class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition focus:outline-none cursor-pointer"
+              >
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                <span>Eliminar</span>
+              </button>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  } @else {
+    <!-- Empty State Component -->
+    <div class="mt-8 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center">
+      <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+        <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+          <line x1="9" y1="9" x2="15" y2="9" />
+          <line x1="9" y1="13" x2="15" y2="13" />
+          <line x1="9" y1="17" x2="11" y2="17" />
+        </svg>
+      </div>
+
+      <h3 class="mt-4 text-lg font-semibold text-slate-900">
+        {{ filter() ? 'No se encontraron tareas con este filtro' : 'Aún no tienes tareas registradas' }}
+      </h3>
+      <p class="mt-1.5 max-w-sm text-sm text-slate-500 leading-relaxed">
+        {{ filter() ? 'Prueba cambiando o limpiando el filtro de estado para visualizar tus demás tareas.' : 'Comienza registrando tu primera tarea para organizar tus prioridades y actividades.' }}
+      </p>
+
+      <div class="mt-6">
+        @if (filter()) {
+          <button
+            type="button"
+            (click)="setFilter(null)"
+            class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+          >
+            Limpiar filtro
+          </button>
+        } @else {
+          <a
+            routerLink="/tasks/new"
+            class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-700 transition cursor-pointer"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            <span>Crear mi primera tarea</span>
+          </a>
+        }
+      </div>
+    </div>
+  }
 }
 
+<!-- Delete Confirmation Modal -->
 @if (taskToDelete(); as task) {
   <app-confirm-modal
     heading="Eliminar tarea"
-    [message]="'¿Seguro que quieres eliminar «' + task.title + '»? Esta acción no se puede deshacer.'"
+    [message]="'¿Estás seguro de que deseas eliminar «' + task.title + '»? Esta acción no se puede deshacer.'"
+    confirmLabel="Eliminar tarea"
     [loading]="deleting()"
     (confirmed)="confirmDelete()"
     (cancelled)="closeDeleteModal()"

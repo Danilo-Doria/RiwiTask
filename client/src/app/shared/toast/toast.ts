@@ -5,7 +5,7 @@ import { Toast, ToastService } from '../../core/services/toast.service';
   selector: 'app-toast',
   template: `
     <div
-      class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"
+      class="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-3 sm:px-0"
       aria-live="polite"
       aria-atomic="true"
     >

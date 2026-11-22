@@ -27,6 +27,14 @@ export class ClientList implements OnInit {
     this.loadClients();
   }
 
+  protected getClientInitials(name: string): string {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase() || 'C';
+  }
+
   protected loadClients(): void {
     this.loading.set(true);
     this.errorMessage.set(null);

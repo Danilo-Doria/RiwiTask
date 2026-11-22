@@ -37,6 +37,16 @@ export class TaskList implements OnInit {
     return status ? this.tasks().filter((task) => task.status === status) : this.tasks();
   });
 
+  protected readonly taskCount = computed(() => this.tasks().length);
+
+  protected readonly statusCounts = computed(() => {
+    const counts: Record<string, number> = {};
+    for (const t of this.tasks()) {
+      counts[t.status] = (counts[t.status] || 0) + 1;
+    }
+    return counts;
+  });
+
   ngOnInit(): void {
     this.loadTasks();
   }
